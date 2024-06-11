@@ -1,18 +1,28 @@
 package main
 
 import (
-	"github.com/gofiber/fiber/v2"
-	"github.com/nurtidev/network-protection-assessment/charts"
-	"github.com/nurtidev/network-protection-assessment/handlers"
 	"log"
+
+	"github.com/nurtidev/network-protection-assessment/internal/console"
+	"github.com/nurtidev/network-protection-assessment/internal/exporter"
+	"github.com/nurtidev/network-protection-assessment/internal/interceptor"
+	"github.com/nurtidev/network-protection-assessment/pkg/db"
 )
 
 func main() {
-	app := fiber.New()
+	database := db.InitDB("metrics.db")
+	defer database.Close()
 
-	app.Get("/methods", handlers.GetProtectionMethods)
-	app.Post("/simulate", handlers.SimulateProtection)
-	app.Get("/chart", charts.GenerateChart)
+	// Используйте правильное имя интерфейса
+	device := "\\Device\\NPF_{402C6739-E35A-40A2-A62C-202DB58DE6CA}"
 
-	log.Fatal(app.Listen(":3000"))
+	go func() {
+		err := interceptor.StartCapture(device)
+		if err != nil {
+			log.Fatalf("Failed to start capture: %v", err)
+		}
+	}()
+
+	go exporter.RecordMetrics()
+	console.StartConsole()
 }
