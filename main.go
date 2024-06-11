@@ -13,7 +13,6 @@ func main() {
 	database := db.InitDB("metrics.db")
 	defer database.Close()
 
-	// Используйте правильное имя интерфейса
 	device := "\\Device\\NPF_{402C6739-E35A-40A2-A62C-202DB58DE6CA}"
 
 	go func() {
